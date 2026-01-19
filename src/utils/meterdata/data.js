@@ -108,24 +108,24 @@ export async function processData({client, plcIP, rack, slot, DBNumber, startByt
             }
 
             data[meter] = {
-                CURRENT_I1: readFloatSafe(buf, base + 0),
-                CURRENT_I2: readFloatSafe(buf, base + 4),
-                CURRENT_I3: readFloatSafe(buf, base + 8),
-                VOLTAGE_V1: readFloatSafe(buf, base + 12),
-                VOLTAGE_V2: readFloatSafe(buf, base + 16),
-                VOLTAGE_V3: readFloatSafe(buf, base + 20),
-                FREQUENCY: readFloatSafe(buf, base + 24),
-                KW: readFloatSafe(buf, base + 28),
-                KWH: readFloatSafe(buf, base + 32),
-                COS_PHI: readFloatSafe(buf, base + 36),
-                KW_DEMAND: readFloatSafe(buf, base + 40),
-                CUMULATIVE_THD_I: readFloatSafe(buf, base + 44),
-                CUMULATIVE_THD_V: readFloatSafe(buf, base + 48),
-                KVA: readFloatSafe(buf, base + 52),
-                KVAR: readFloatSafe(buf, base + 56),
-                SPARE1: readFloatSafe(buf, base + 60),
-                SPARE2: readFloatSafe(buf, base + 64),
-                SPARE3: readFloatSafe(buf, base + 68)         
+                Active_Energy: readFloatSafe(buf, base + 0),
+                Reactive_Power: readFloatSafe(buf, base + 4),
+                Apparent_Power: readFloatSafe(buf, base + 8),
+                Current_I1: readFloatSafe(buf, base + 12),
+                Current_I2: readFloatSafe(buf, base + 16),
+                Current_I3: readFloatSafe(buf, base + 20),
+                Voltage_V1: readFloatSafe(buf, base + 24),
+                Voltage_V2: readFloatSafe(buf, base + 28),
+                Voltage_V3: readFloatSafe(buf, base + 32),
+                Active_Power: readFloatSafe(buf, base + 36),
+                Frequency: readFloatSafe(buf, base + 40),
+                Power_Factor: readFloatSafe(buf, base + 44),
+                KW_Demand: readFloatSafe(buf, base + 48),
+                THD_IL: readFloatSafe(buf, base + 52),
+                THD_V: readFloatSafe(buf, base + 56),
+                Spare1: readFloatSafe(buf, base + 60),
+                Spare2: readFloatSafe(buf, base + 64),
+                Spare3: readFloatSafe(buf, base + 68)         
             };
         }
         result.STATUS = true;
@@ -172,11 +172,25 @@ export async function dataEntries({meterNames, meterCount, result}){
 
             const sql = `
                 INSERT INTO ${meter} (
-                CURRENT_I1,CURRENT_I2,CURRENT_I3,
-                VOLTAGE_V1,VOLTAGE_V2,VOLTAGE_V3,
-                FREQUENCY,KW,KWH,COS_PHI,KW_DEMAND,
-                CUMULATIVE_THD_IL,CUMULATIVE_THD_V,
-                KVA,KVAR,SPARE1,SPARE2,SPARE3
+                    Active_Energy
+                    Reactive_Power
+                    Apparent_Power
+                    Current_I1
+                    Current_I2
+                    Current_I3
+                    Voltage_V1
+                    Voltage_V2
+                    Voltage_V3
+                    Active_Power
+                    Frequency
+                    Power_Factor
+                    KW_Demand
+                    THD_IL
+                    THD_V
+                    Spare1
+                    Spare2
+                    Spare3
+
                 ) VALUES (
                     $1,$2,$3,$4,$5,$6,$7,$8,$9,
                     $10,$11,$12,$13,$14,$15,$16,$17,$18
@@ -184,13 +198,13 @@ export async function dataEntries({meterNames, meterCount, result}){
             `;
 
             const dbResult = await pool.query(sql, [
-                meterData.CURRENT_I1, meterData.CURRENT_I2, meterData.CURRENT_I3,
-                meterData.VOLTAGE_V1, meterData.VOLTAGE_V2, meterData.VOLTAGE_V3,
-                meterData.FREQUENCY, meterData.KW, meterData.KWH,
-                meterData.COS_PHI, meterData.KW_DEMAND,
-                meterData.CUMULATIVE_THD_I, meterData.CUMULATIVE_THD_V,
-                meterData.KVA, meterData.KVAR,
-                meterData.SPARE1, meterData.SPARE2, meterData.SPARE3
+                meterData.Active_Energy, meterData.Reactive_Power, meterData.Apparent_Power,
+                meterData.Current_I1, meterData.Current_I2, meterData.Current_I3,
+                meterData.Voltage_V1, meterData.Voltage_V1, meterData.Voltage_V1,
+                meterData.Active_Power, meterData.Frequency,
+                meterData.Power_Factor, meterData.KW_Demand,
+                meterData.THD_IL, meterData.THD_V,
+                meterData.Spare1, meterData.Spare2, meterData.Spare3
             ]);
                 
             if(dbResult.rowCount === 0){
