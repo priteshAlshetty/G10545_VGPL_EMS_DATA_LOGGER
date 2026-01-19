@@ -14,10 +14,16 @@
   "dependencies": {
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
+<<<<<<< HEAD
     "node-snap7": "^1.0.9",
     "pg": "^8.17.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.11"
+=======
+    "node-opcua": "^2.158.0",
+    "node-snap7": "^1.0.9",
+    "pg": "^8.17.1"
+>>>>>>> 2d2dfdf661b13d46ff77ddd25df0f12e09390d05
   }
 }
