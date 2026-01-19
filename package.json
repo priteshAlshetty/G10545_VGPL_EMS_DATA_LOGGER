@@ -12,6 +12,8 @@
   "dependencies": {
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
-    "node-opcua": "^2.158.0"
+    "node-opcua": "^2.158.0",
+    "node-snap7": "^1.0.9",
+    "pg": "^8.17.1"
   }
 }
