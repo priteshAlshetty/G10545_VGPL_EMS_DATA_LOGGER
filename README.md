@@ -1,13 +1,13 @@
 cat <<'EOF' > README.md
-# Logger Service (OPC UA → MySQL)
+# Logger Service (S7 → postgresSQL)
 
 ## Overview
 
 This project is a **configurable industrial Data Logger Service** built with **Node.js**, designed to:
 
-- Read data from **OPC UA servers (PLCs)**
-- Log data into **MySQL**
-- Scale by **adding more meters via API**
+- Read data from **S7 servers (PLCs)**
+- Log data into **postgresSQL**
+- Scale by **adding more meters via static meter.config.js**
 - Run continuously in the background
 - Expose **health and status APIs**
 - Operate safely in industrial environments
@@ -19,12 +19,12 @@ Future services like analytics, reporting, dashboards, user management, and SAP 
 
 ## Key Features
 
-- OPC UA → MySQL data logging
+- Profinet S7 → postgresSQL data logging
 - Meter-based architecture (1 meter = 1 table = 1 row per cycle)
 - Fixed logging interval (~30 seconds)
-- Runtime configuration via REST APIs (no restart required)
-- Enable / disable meters dynamically
-- Automatic table creation for new meters
+- restart required if config files updated
+- all meters enabled by default as per config 
+- template sql to create Table for new meter , need to run once upon new meter added
 - Background scheduler (no `setInterval`, no infinite loops)
 - Health & status APIs for monitoring
 - Error logging (application + meter level)
@@ -106,7 +106,7 @@ logger-service/
 
 ## Logging Model
 
-- Interval: ~30 seconds
+- Interval: 1~30 seconds
 - One cycle:
  - Read all enabled meters
  - Build JSON payload (1 object per meter)
@@ -116,7 +116,7 @@ logger-service/
  - This guarantees:
     - Stable performance
     - Predictable load
-    - Approx. 30-second gap between consecutive readings per meter
+    - Approx. 30-second or less gap between consecutive readings per meter
 
     --- 
 ## Database Concepts
@@ -124,24 +124,22 @@ logger-service/
 
  - Logical unit of logging
  - Each meter maps to one MySQL table
- - Enable / disable controls logging
 
 ### Tags
 
- - OPC UA NodeId ↔ SQL column mapping
- - Belong to exactly one meter
- - Can be enabled / disabled individually
+ - PLC DB structure is consistent 1 DB= 72 Meters , one DB per location
+ - Any Location can have 72 or less meter , if more new DB will be formed
+ - Meter status by another Bool Tag will be monitored
 
 ### Health Tracking
 
  - last_logged_at per meter
- - Error logs stored separately
+ - Error logs stored separately in logs
  - Used by health APIs
 
  ## API Overview
 
-The Logger Service exposes REST APIs to configure meters, control the scheduler, and monitor health.
-All configuration changes take effect **at runtime** without restarting the service.
+The Logger Service exposes REST APIs  monitor meter health , and PLC conn. Also an endpoint for latest Timestamp where data inserted.
 
 ---
 
