@@ -1,8 +1,11 @@
+//import fs from 'fs';
+
+import { table } from 'console';
 import pool from '../../config/db.js';
+import fs from 'fs';
 
-
-const tableNames = [];
-const meterNames = [];
+//const tableNames = [];
+//const meterNames = [];
 const DBNames = ["DB5", "DB8", "DB17", "DB24", "DB27", "DB30", "DB33", "DB36", "DB39"]
 function buildMetername(){
     for(let i = 1; i <= 6; i++){
@@ -12,24 +15,24 @@ function buildMetername(){
         }
     }
 }
+//buildMetername();
+//console.log(meterNames.length);
 
-buildMetername();
-
-async function deleteTable(DBNames, meterNames){
+async function deleteTable(DBNames, meterNames, tableNames){
     for(let DBName of DBNames){
         for(let meterName of meterNames){
             const tableName = `${DBName}${meterName}`;
-            tableNames.push(tableName)
-
-            await pool.query(`
-                DROP TABLE ${tableName}`)
+            tableNames.push(tableName);
         }
     }
+    fs.writeFileSync('tableNames.json', JSON.stringify(tableNames, null, 2));
+    console.log('JSON file created.');
 }
+//await deleteTable(DBNames, meterNames, tableNames)
+//console.log(tableNames.length);
+//console.log(tableNames);
 
-//await deleteTable(["DB30"], meterNames)
-// console.log(tableNames.length);
-// console.log(tableNames);
+
 
 async function insert() {
     const sql = `
@@ -79,5 +82,34 @@ async function insert() {
         332             // Spare3
     ]);
 }
-
 //await insert();
+
+        const DBNumber = 12;
+        let DBName = "DB" + String(DBNumber);
+        const tableNames = [];
+        for(let i = 1; i <= 6; i++){
+            for(let k = 1; k <= 12; k++){
+                const tableName = `${DBName}G${i}M${k}`;
+                tableNames.push(tableName);
+            }
+        }
+        //console.log(tableNames.length);
+        //console.log(tableNames);
+
+const jsonData = fs.readFileSync('./meterdata/tableNames.json', 'utf8');
+const meterNames = JSON.parse(jsonData, null, 2);
+//console.log(meterNames);
+//console.log(meterNames.length);
+
+async function deleteEntries(tableNames) {
+    for(const table of tableNames){
+        await pool.query(`
+            DELETE FROM ${table};
+        `);
+        
+        console.log(`Entries deleted: ${table}`);
+    }
+    
+}
+
+await deleteEntries(meterNames);

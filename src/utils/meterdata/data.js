@@ -16,7 +16,7 @@ function readFloatSafe(buf, offset) {
     }
 }
 
-async function connectPLC( {client, plcIP, rack, slot} ){
+export async function connectPLC( {client, plcIP, rack, slot} ){
     if (!client) {
         throw new Error('Error in connecting PLC: PLC client is required');
     } 
@@ -43,7 +43,7 @@ async function connectPLC( {client, plcIP, rack, slot} ){
     })
 }
 
-async function readDB( {client, DBNumber, startBytes, meterSize, meterCount} ){
+export async function readDB( {client, DBNumber, startBytes, meterSize, meterCount} ){
     if(!meterCount || !Number.isInteger(meterCount) || meterCount <= 0){
         throw new TypeError(`Error in reading DB data: meterNames must be a positive integer: ${meterCount}`);
     } 
@@ -71,37 +71,46 @@ async function readDB( {client, DBNumber, startBytes, meterSize, meterCount} ){
             resolve(data);
         });
     });
- 
 }
 
-export async function processData({client, plcIP, rack, slot, DBNumber, startBytes, meterSize, meterCount, meterNames}) {
+export async function processData({client, plcIP, rack, slot, DBNumber, startBytes, meterSize, meterCount}) {
+    
     const result = {
         STATUS: false,
         DATA: null
     };
 
-    if(!Array.isArray(meterNames)){
-        console.error('Error in processing DB data: meterNames must be an array');
-        return result;
-    }
     if(!meterCount || !Number.isInteger(meterCount) || meterCount <= 0){
         console.error('Error in processing DB data: meterNames must be a positive integer.');
         return result;
     }   
-    if(meterNames.length !== meterCount){
+    if(!DBNumber || !Number.isInteger(DBNumber) || DBNumber <= 0){
+        console.error('Error in processing DB data: DBNumber must be a positive integer:', DBNumber );
+        return result;
+    }   
+    let DBName = "DB" + String(DBNumber);
+    const tableNames = [];
+    for(let i = 1; i <= 6; i++){
+        for(let k = 1; k <= 12; k++){
+            const tableName = `${DBName}G${i}M${k}`;
+            tableNames.push(tableName);
+        }
+    }
+    const tableCount = tableNames.length;
+    if(tableCount !== meterCount){
         console.error('Error in processing DB data: meterNames length must match meterCount');
         return result;
     }
+    const allowedTables = new Set(tableNames);
  
     try{
-        await connectPLC({client, plcIP, rack, slot});
+        await connectPLC({client, plcIP, rack, slot, DBBuffer});
         const buf = await readDB({client, DBNumber, startBytes, meterSize, meterCount})
         const data = {};
-        const allowedTables = new Set(meterNames);
-
-        for(let i = 0; i < meterCount; i++){
+        
+        for(let i = 0; i < tableCount; i++){
             const base = i * meterSize;
-            const meter = meterNames[i];
+            const meter = tableNames[i];
             if(!allowedTables.has(meter)){
                 console.error('Error in proccssing DB data: meter name not matched with table name');
                 return result;
@@ -143,24 +152,28 @@ export async function processData({client, plcIP, rack, slot, DBNumber, startByt
 }
 
 // database insert query
-export async function dataEntries({meterNames, meterCount, result}){
-
-    if(!meterNames || !Array.isArray(meterNames)){
-        throw new TypeError('meterNames must be an array')
+export async function dataEntries(result){
+    if(!result.STATUS){
+        throw new TypeError('No meter data, there is no status flag.')
     }
-    if(!meterCount || !Number.isInteger(meterCount) || meterCount <= 0){
+    const tableNames = Object.keys(result.DATA);
+    const tableCount = tableNames.length
+    if(tableCount === 0){
+        throw new TypeError('Meter data is empty')
+    }
+    if(!tableNames || !Array.isArray(tableNames)){
+        throw new TypeError('tableNames must be an array')
+    }
+    if(!tableCount || !Number.isInteger(tableCount) || tableCount <= 0){
         throw new TypeError('meterNames must be a positive integer.')
     }
-    if( meterNames.length !== meterCount ){
-        throw new TypeError('Meter names count and actual meterCount not matched or improper/invalid inputs for meterNames or meterCount')
-    }  
     
-    const allowedTables = new Set(meterNames)
+    const allowedTables = new Set(tableNames)
 
     try{
-        for(let i = 0; i < meterCount; i++){
+        for(let i = 0; i < tableCount; i++){
             
-            const meter = meterNames[i];
+            const meter = tableNames[i];
             if(!allowedTables.has(meter)){
                 throw new Error(`Meter name not matched with table name: ${meter}`)
             }
@@ -172,23 +185,23 @@ export async function dataEntries({meterNames, meterCount, result}){
 
             const sql = `
                 INSERT INTO ${meter} (
-                    Active_Energy
-                    Reactive_Power
-                    Apparent_Power
-                    Current_I1
-                    Current_I2
-                    Current_I3
-                    Voltage_V1
-                    Voltage_V2
-                    Voltage_V3
-                    Active_Power
-                    Frequency
-                    Power_Factor
-                    KW_Demand
-                    THD_IL
-                    THD_V
-                    Spare1
-                    Spare2
+                    Active_Energy,
+                    Reactive_Power,
+                    Apparent_Power,
+                    Current_I1,
+                    Current_I2,
+                    Current_I3,
+                    Voltage_V1,
+                    Voltage_V2,
+                    Voltage_V3,
+                    Active_Power,
+                    Frequency,
+                    Power_Factor,
+                    KW_Demand,
+                    THD_IL,
+                    THD_V,
+                    Spare1,
+                    Spare2,
                     Spare3
 
                 ) VALUES (
