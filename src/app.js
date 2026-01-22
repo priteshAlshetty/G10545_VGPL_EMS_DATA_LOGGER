@@ -1,9 +1,8 @@
-const express = require('express');
-const app = express();
+import express from 'express';
 
+export const app = express();
 
 app.get('/', (req, res) => {
-    res.send(' VGPL Data Logger service is running');
+    res.status(200).send('VGPL Data Logger service is running');
 });
 
-module.exports = app;

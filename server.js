@@ -1,5 +1,5 @@
-const app = require('./src/app');
-const { startScheduler, stopScheduler } = require('./src/scheduler/scheduler');
+import {app} from './src/app.js';
+import { startScheduler, stopScheduler } from './src/scheduler/scheduler.js';
 const PORT = 3300;
 const server = app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
