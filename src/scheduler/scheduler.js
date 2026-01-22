@@ -1,62 +1,46 @@
 
 import cron from 'node-cron';
-import { createPLCClient, connectPLC  } from '../services/PLCConnect.js';
+import { connectPLC  } from '../services/PLCConnect.js';
 import { readDB } from '../services/DBRead.js';
 import { processData } from '../services/processData.js';
 import { dataEntries } from '../services/dataEntries.js';
+import { CONFIG} from '../constants/plc.constant.js';
+import { DB_LIST } from '../constants/plc.constant.js';
+import { SCHEDULE_STRING} from '../scheduler/scheduler.js';
+import { schedulerStatus } from '../constants/status.constants.js';
+import { testDBConnect } from '../services/testDBConnect.js';
 
-const DB_LIST = [5, 8, 17, 24, 27, 30, 33, 36, 39];// example PLC DB numbers
-const client = createPLCClient()
-const config = {
-    client,
-    plcIP: '192.168.1.10',
-    rack: 0,
-    slot: 1,
-    DBNumber: 39,
-    startBytes: 0,
-    meterSize: 72,
-    meterCount: 72,
-};
-
-const SCHEDULE_STRING = '*/5 * * * * *'; // every 5 seconds for testing, change as needed
 let task;
-const scedulerStatus = {
-    isRunning: false,
-    plcConnected : false,
-    dbConnected : false,
-    lastRun : null,
-    lastError : null
-}
 
 export function startScheduler() {
     task = cron.schedule(SCHEDULE_STRING, async () => {
-        if (scedulerStatus.isRunning) {
+        if (schedulerStatus.isRunning) {
             console.warn('Previous cycle still running, skipping');
             return;
         }
         try {
-            scedulerStatus.isRunning = true;
+            schedulerStatus.isRunning = true;
         
-            await connectPLC({client, plcIP: config.plcIP, rack: config.rack, slot: config.slot })
-            scedulerStatus.plcConnected = true;
+            await connectPLC({config: CONFIG.client, plcIP: CONFIG.plcIP, rack: CONFIG.rack, slot: CONFIG.slot })
+            schedulerStatus.plcConnected = true;
 
             for (const db of DB_LIST) {
-                const DBBuffer = await readDB({client, DBNumber: db, startBytes: config.startBytes, meterSize: config.meterSize, meterCount: config.meterCount})
-                const result = await processData({client, DBBuffer,  DBNumber: db, startBytes: config.startBytes, meterSize: config.meterSize, meterCount: config.meterCount})
-                await dataEntries(result);
-                scedulerStatus.dbConnected = true;
+                const DBBUFFER = await readDB({client: CONFIG.client, DBNumber: db, startBytes: CONFIG.startBytes, meterSize: CONFIG.meterSize, meterCount: CONFIG.meterCount})
+                const RESULT = await processData({DBBUFFER,  DBNumber: db, meterSize: CONFIG.meterSize, meterCount: CONFIG.meterCount})
+                schedulerStatus.dbConnected = testDBConnect();
+                await dataEntries(RESULT);
             }
 
             console.log('Scheduled task executed successfully at :', new Date().toLocaleString());
-            scedulerStatus.isRunning = false;
-            scedulerStatus.lastRun = new Date().toLocaleString();
-            scedulerStatus.plcConnected = false;
-            scedulerStatus.dbConnected = false;
+            schedulerStatus.isRunning = false;
+            schedulerStatus.lastRun = new Date().toLocaleString();
+            schedulerStatus.plcConnected = false;
+            schedulerStatus.dbConnected = false;
         }
 
         catch (error) {
-            scedulerStatus.isRunning = false;
-            scedulerStatus.lastError = error;
+            schedulerStatus.isRunning = false;
+            schedulerStatus.lastError = error;
             console.log('Scheduler Fuction Status:', scedulerStatus)
             console.error('Error in scheduled task:', error);
         }
