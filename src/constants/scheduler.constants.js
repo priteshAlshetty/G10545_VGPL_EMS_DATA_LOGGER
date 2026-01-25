@@ -1,0 +1,1 @@
+export const SCHEDULE_STRING = '*/5 * * * * *'; // every 5 seconds for testing, change as needed
