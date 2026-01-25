@@ -12,4 +12,6 @@ export const CONFIG = {
     startBytes: 0,
     meterSize: 72,
     meterCount: 72,
+    maxRetries: 5,
+    delayMs: 5000
 };

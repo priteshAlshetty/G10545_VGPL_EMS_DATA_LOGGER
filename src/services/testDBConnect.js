@@ -5,7 +5,7 @@ export async function testDBConnect(retries = 10, delayMs = 5000){
     for(let attemp = 1; attemp <= retries; attemp++){
         try{
             const result = await pool.query('SELECT NOW()');
-            console.log('PostgreSQL Connected at:', result.rows[0].now);
+            //console.log('PostgreSQL Connected at:', result.rows[0].now);
             return true;
         } catch(err){
             console.error(

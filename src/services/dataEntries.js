@@ -1,5 +1,6 @@
 
-import pool from '../config/db.js';
+import { pool } from '../config/db.config.js';
+
 
 // database insert query and data validation.
 export async function dataEntries(result){
