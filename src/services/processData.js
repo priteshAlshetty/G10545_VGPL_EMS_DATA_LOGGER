@@ -3,40 +3,44 @@
 function readFloatSafe(buf, offset) {
     try{
         let val = buf.readFloatBE(offset);
-        return Number.isFinite(val) ? val : null;
+        return Number.isFinite(val) ? val : 0;
     } catch{
-        return null;
+        return 0;
     }
 }
 // function to extract meter data from DB Buffer and structure the resulatant data.
-export async function processData({DBBuffer, DBNumber, meterSize, meterCount}) {
+export async function processData({DBBuffer, DBNumber, meterSize, meterCount, gatewayCount}) {
     
     const result = {
         STATUS: false,
         DATA: null
     };
-
+    if(!DBBuffer){
+        console.error("Error: DBBuffer is UNDEFINED in processDATA");
+        return result;
+    }
     if(!meterCount || !Number.isInteger(meterCount) || meterCount <= 0){
         console.error('Error in processing DB data: meterNames must be a positive integer.');
         return result;
-    }   
+    }  
+    if(!gatewayCount || !Number.isInteger(gatewayCount) || gatewayCount <= 0){
+        console.error('Error in processing DB data: gatewayCount must be a positive integer.');
+        return result;
+    } 
     if(!DBNumber || !Number.isInteger(DBNumber) || DBNumber <= 0){
         console.error('Error in processing DB data: DBNumber must be a positive integer:', DBNumber );
         return result;
     }   
+
     let DBName = "DB" + String(DBNumber);
     const tableNames = [];
-    for(let i = 1; i <= 6; i++){
-        for(let k = 1; k <= 12; k++){
+    for(let i = 1; i <= gatewayCount; i++){
+        for(let k = 1; k <= meterCount; k++){
             const tableName = `${DBName}G${i}M${k}`;
             tableNames.push(tableName);
         }
     }
     const tableCount = tableNames.length;
-    if(tableCount !== meterCount){
-        console.error('Error in processing DB data: meterNames length must match meterCount');
-        return result;
-    }
     const allowedTables = new Set(tableNames);
  
     try{

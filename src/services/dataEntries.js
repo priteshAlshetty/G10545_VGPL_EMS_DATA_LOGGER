@@ -5,7 +5,7 @@ import { pool } from '../config/db.config.js';
 // database insert query and data validation.
 export async function dataEntries(result){
     if(!result.STATUS){
-        throw new TypeError('No meter data, there is no status flag.')
+        throw new TypeError('No meter data, Status Flag ---> False.')
     }
     const tableNames = Object.keys(result.DATA);
     const tableCount = tableNames.length

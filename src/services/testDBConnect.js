@@ -18,5 +18,3 @@ export async function testDBConnect(retries = 10, delayMs = 5000){
         }
     }
 }
-
-//await testDBConnect()
