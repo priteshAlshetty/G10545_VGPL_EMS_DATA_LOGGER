@@ -44,8 +44,7 @@ export async function processData({DBBuffer, DBNumber, meterSize, meterCount, ga
     const allowedTables = new Set(tableNames);
  
     try{
-        //await connectPLC({client, plcIP, rack, slot});
-        //const buf = await readDB({client, DBNumber, startBytes, meterSize, meterCount})
+ 
         const buf = DBBuffer;
         const data = {};
         
@@ -83,11 +82,10 @@ export async function processData({DBBuffer, DBNumber, meterSize, meterCount, ga
         return result;
 
     } catch(err){
-        console.error('DB Data Processing Error:', err.message);
+        console.error('Error in processData:', err.message);
         result.STATUS = false;
         result.DATA = null;
-        // result.error =err;
-        console.dir(err);
+        result.error = err;
         return result;
     }
 }

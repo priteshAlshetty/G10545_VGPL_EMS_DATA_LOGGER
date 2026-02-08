@@ -1,7 +1,5 @@
 import { RETRYABLE_ERRORS } from '../constants/plc.retry.js';
 
-
-
 // Connect to PLC using s7 / snap7 libray and monitor the PLC status.
 export async function connectPLC( {client, plcIP, rack, slot} ){
     if (!client) {

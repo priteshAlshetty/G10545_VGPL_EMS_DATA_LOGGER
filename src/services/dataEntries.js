@@ -1,7 +1,6 @@
 
 import { pool } from '../config/db.config.js';
 
-
 // database insert query and data validation.
 export async function dataEntries(result){
     if(!result.STATUS){
