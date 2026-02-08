@@ -1,9 +1,4 @@
 
-import snap7 from 'node-snap7';
-export function createPLCClient(){
-    return new snap7.S7Client()
-}
-
 // function to read PLC DB and return buffer in response
 export async function readDB( {client, DBNumber, startBytes, meterSize, meterCount} ){
     if(!meterCount || !Number.isInteger(meterCount) || meterCount <= 0){
