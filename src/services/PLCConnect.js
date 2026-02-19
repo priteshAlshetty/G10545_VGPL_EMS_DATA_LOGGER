@@ -1,10 +1,4 @@
 import { RETRYABLE_ERRORS } from '../constants/plc.retry.js';
-import snap7 from 'node-snap7';
-export function createPLCClient(){
-    return new snap7.S7Client()
-}
-import { CONFIG } from '../constants/plc.constant.js';
-
 
 // Connect to PLC using s7 / snap7 libray and monitor the PLC status.
 export async function connectPLC( {client, plcIP, rack, slot} ){
