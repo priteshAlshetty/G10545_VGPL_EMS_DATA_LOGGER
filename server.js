@@ -1,19 +1,31 @@
-import {app} from './src/app.js';
+import { app } from './src/app.js';
 import { startScheduler, stopScheduler } from './src/scheduler/scheduler.js';
+
 const PORT = 3300;
-const server = app.listen(PORT, () => {
+
+const server = app.listen(PORT, async () => {
+
     console.log(`Server is running on port ${PORT}`);
-    // ✅ SCHEDULER STARTS HERE
-    startScheduler();
+
+    try {
+        // SCHEDULER STARTS HERE
+        await startScheduler();
+    } catch (error) {
+        console.error("Scheduler failed to start:", error);
+    }
+
 });
+
 /* Graceful shutdown */
+
 process.on('SIGTERM', shutdown);
 process.on('SIGINT', shutdown);
 
 function shutdown() {
     console.log('Shutting down service...');
     stopScheduler();
-    server.close(() =>
-        console.log('data logger service is shut down. Exiting process........') ||
-        process.exit(0));
+    server.close(() => {
+        console.log('data logger service is shut down. Exiting process........');
+        process.exit(0);
+    });
 }

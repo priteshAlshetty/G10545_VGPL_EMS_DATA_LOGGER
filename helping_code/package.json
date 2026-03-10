@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "node-snap7": "^1.0.9",
+    "pg": "^8.16.3",
+    "type": "module"
+  }
+}
