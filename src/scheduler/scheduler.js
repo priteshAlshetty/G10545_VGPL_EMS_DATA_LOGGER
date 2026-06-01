@@ -1,6 +1,6 @@
 
 import cron from 'node-cron';
-import { connectPLC  } from '../services/PLCConnect.js';
+import { connectPLC } from '../services/PLCConnect.js';
 import { readDB } from '../services/DBRead.js';
 import { processData } from '../services/processData.js';
 import { dataEntries } from '../services/dataEntries.js';
@@ -15,26 +15,46 @@ let isRunningstartScheduler = false;
 export async function startScheduler() {
 
     task = cron.schedule(SCHEDULE_STRING, async () => {
+
         if (isRunningstartScheduler) {
             console.warn('Previous cycle still running, skipping');
             return;
-        } 
-        
+        }
+
         isRunningstartScheduler = true;
-        
+
         try {
-            const isConnectPLC = await connectPLC({client: CONFIG.client, plcIP: CONFIG.plcIP, rack: CONFIG.rack, slot: CONFIG.slot})
-            if(!isConnectPLC.status){
+            const isConnectPLC = await connectPLC({
+                client: CONFIG.client,
+                plcIP: CONFIG.plcIP,
+                rack: CONFIG.rack,
+                slot: CONFIG.slot
+            })
+            if (!isConnectPLC.status) {
                 console.error('PLC Connection failed:', isConnectPLC.error);
                 return;
             }
 
             for (const db of CONFIG.DBList) {
 
-                const DBBUFFER = await readDB({client: CONFIG.client, DBNumber: db, startBytes: CONFIG.startBytes, meterSize: CONFIG.meterSize, meterCount: CONFIG.meterCount});
-                const DATA = await processData({DBBuffer: DBBUFFER,  DBNumber: db, meterSize: CONFIG.meterSize, meterCount: CONFIG.meterCount, gatewayCount: CONFIG.gatewayCount});
+                const DBBUFFER = await readDB({
+                    client: CONFIG.client,
+                    DBNumber: db,
+                    startBytes: CONFIG.startBytes,
+                    meterSize: CONFIG.meterSize,
+                    meterCount: CONFIG.meterCount
+                });
+
+                const DATA = await processData({
+                    DBBuffer: DBBUFFER,
+                    DBNumber: db,
+                    meterSize: CONFIG.meterSize,
+                    meterCount: CONFIG.meterCount,
+                    gatewayCount: CONFIG.gatewayCount
+                });
+
                 const databaseStatus = await testDBConnect();
-                if(databaseStatus){
+                if (databaseStatus) {
                     await dataEntries(DATA);
                 }
             }
@@ -44,9 +64,9 @@ export async function startScheduler() {
         } catch (error) {
             console.log('Error: ', error);
             console.log('Re-connecting PLC...');
-            result = await connectPLC({client: CONFIG.client, plcIP: CONFIG.plcIP, rack: CONFIG.rack, slot: CONFIG.slot});
+            result = await connectPLC({ client: CONFIG.client, plcIP: CONFIG.plcIP, rack: CONFIG.rack, slot: CONFIG.slot });
 
-        } finally{
+        } finally {
             isRunningstartScheduler = false;
         }
     });
